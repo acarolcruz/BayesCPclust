@@ -19,7 +19,7 @@ You can install the development version of BayesCPclust from
 
 ``` r
 # install.packages("devtools")
-# devtools::install_github("jennybc/regexcite")
+devtools::install_github("acarolcruz/BayesCPclust")
 ```
 
 ## Examples
@@ -71,5 +71,5 @@ sim_random(S = 1, seed = 1245, scenario = "TESTE", casenumber = 1,
            a = 2, b = 1000, alpha0 = 1/100, lambda = 2, maxIter = 50,
            startpoint_sampling = 2, par.values = param1, sigma2_equal = FALSE,
            emp = FALSE, initial_val = initial_val)
-#> [1] 0.238467
+#> [1] 0.2380083
 ```

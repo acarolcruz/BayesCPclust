@@ -26,7 +26,7 @@ You can install the development version of BayesCPclust from [GitHub](https://gi
       
 ``` r
 # install.packages("devtools")
-# devtools::install_github("jennybc/regexcite")
+devtools::install_github("acarolcruz/BayesCPclust")
 ```
 
 ## Examples
