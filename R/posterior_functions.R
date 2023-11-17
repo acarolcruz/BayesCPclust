@@ -1,5 +1,43 @@
-#posterior_functions
+#' Full conditional functions for all parameters
+#'
+#' @param k A scalar for the number of changes points in a cluster
+#' @param km A scalar for the number of changes points in a cluster
+#' @param mk A matrix with all possible values to distribute between change points
+#' @param lambda A scalar defining the parameter for the Truncate Poisson distribution
+#'    that controls the number of change points (or its initial values)
+#' @param kstar A scalar with the number maximum of change points in all clusters
+#' @param m0 A scalar for the number of positions available to define change-points positions
+#' @param Yn A vector or matrix with data sequences for a cluster
+#' @param Tln A vector with the change-point positions for a cluster
+#' @param alphan A vector with the constant level values for each interval between change points for a cluster
+#' @param sigma2n A vector with the variance of the data sequences in a cluster
+#' @param cellsn A vector with the indices of the data sequences in a cluster
+#' @param Cr A scalar with the number of data sequences in a cluster
+#' @param clusteri A scalar with the index of a cluster
+#' @param as The hyperparameter value for the shape parameter in the inverse-gamma prior for the variance
+#'    component
+#' @param bs The hyperparameter value for the scale parameter in the inverse-gamma prior for the variance
+#'    component
+#' @param M A scalar representing the number of points available for each data sequence
+#' @param w A scalar representing the minimum number of points in each interval between two change points
+#' @param N A scalar representing the number of data sequences
+#' @param al The hyperparameter value for the shape parameter in the gamma prior for lambda
+#' @param bl The hyperparameter value for the scale parameter in the gamma prior for lambda
+#' @param a The hyperparameter value for the shape parameter in the gamma prior for alpha0
+#' @param b The hyperparameter value for the scale parameter in the gamma prior for alpha0
+#' @param alpha0 A scalar defining the parameter for the Dirichlet process prior
+#'    that controls the number of clusters (or its initial values)
+#' @param K A vector containing the number of change points for each cluster (or its initial values)
+#' @param Tl A list containing a vector for each cluster determining the change-point positions in each cluster
+#'    (or its initial values)
+#' @param cluster A vector containing the cluster assignments for the data sequences (or its initial values)
+#' @param alpha A list containing a vector for each cluster determining the constant level values
+#'    for each interval between change points in each cluster (or its initial values)
+#' @param sigma2 A vector with the variances of the data sequences (or its initial values)
 
+#'
+#' @export
+#'
 pk <- function(k, kstar, lambda){
   (lambda^k/factorial(k)) / sum(sapply(0:kstar,FUN=function(l){lambda^l/factorial(l)}))
 }
@@ -39,7 +77,7 @@ qn0 <- function(alpha0, w, N, M, bs, as, kstar, lambda, Yn){
   res2 <- c()
   for(km in 0:kstar){
     m0 <- M - 1 - (km+1)*w
-    mk <- permuteGeneral(0:m0, km + 1,
+    mk <- RcppAlgos::permuteGeneral(0:m0, km + 1,
                          constraintFun = "sum",
                          comparisonFun = "==", limitConstraints = m0)
 
@@ -98,7 +136,7 @@ possigma2n <- function(as, bs, M, Yn, k, Tln, alphan){
   an <- (M/2) + as
   bn <- (((t(Yn - Xn%*%alphan)%*%(Yn - Xn%*%alphan))/2) + (1/bs))#rate parameter : exp((1/B)*x) bn = 1/B
 
-  return(rinvgamma(1, alpha = an, beta = bn))
+  return(extraDistr::rinvgamma(1, alpha = an, beta = bn))
 }
 
 postK_mk <- function(k, m0, w, M, Yn, sigma2n, cellsn, mk, Cr){
@@ -135,21 +173,10 @@ postK_mk <- function(k, m0, w, M, Yn, sigma2n, cellsn, mk, Cr){
   return(H)
 }
 
-
-logsumexp <- function(x, min_x = Inf){
-  min_x <- min(min_x, min(x))
-  const <- min_x / (-740) #-740
-  return(list(x = x/const, min_x = min_x))
-}
-
-
 postK <- function(kstar, w, M, Y, cluster, sigma2, lambda, clusteri){
 
   # filtering the cells in cluster i
   cellsn <- which(cluster == clusteri)
-
-  # filtering the alpha values for cluster i
-  # alphan <- alpha[[clusteri]]
 
   # selecting the Y values for the cells in cluster i
   Yn <- as.matrix(Y[,cellsn])
@@ -164,7 +191,7 @@ postK <- function(kstar, w, M, Y, cluster, sigma2, lambda, clusteri){
   min_x <- Inf
   for(k in 0:kstar){
     m0 <- M - 1 -(k+1)*w
-    mk <- permuteGeneral(0:m0, k + 1,
+    mk <- RcppAlgos::permuteGeneral(0:m0, k + 1,
                          constraintFun = "sum",
                          comparisonFun = "==", limitConstraints = m0,
                          repetition = TRUE)
@@ -180,7 +207,7 @@ postK <- function(kstar, w, M, Y, cluster, sigma2, lambda, clusteri){
 
   for(k in 0:kstar){
     m0 <- M - 1 -(k+1)*w
-    mk <- permuteGeneral(0:m0, k + 1,
+    mk <- RcppAlgos::permuteGeneral(0:m0, k + 1,
                          constraintFun = "sum",
                          comparisonFun = "==", limitConstraints = m0,
                          repetition = TRUE)
@@ -207,9 +234,6 @@ postmk <- function(w, M, Y, K, cluster, sigma2, clusteri){
   # filtering the cells in cluster i
   cellsn <- which(cluster == clusteri)
 
-  # filtering the alpha values for cluster i
-  # alphan <- alpha[[clusteri]]
-
   # selecting the Y values for the cells in cluster i
   Yn <- as.matrix(Y[,cellsn])
 
@@ -222,7 +246,7 @@ postmk <- function(w, M, Y, K, cluster, sigma2, clusteri){
   Cr <- sum(cluster == clusteri)
 
   m0 <- M - 1 - (k+1)*w
-  mk <- permuteGeneral(0:m0, k + 1,
+  mk <- RcppAlgos::permuteGeneral(0:m0, k + 1,
                        constraintFun = "sum",
                        comparisonFun = "==", limitConstraints = m0,
                        repetition = TRUE)
@@ -271,10 +295,10 @@ postalphak <- function(M, Y, sigma2, K, Tl, cluster, clusteri){
 
   if(k == 0){
     mun <- Sigman*(sum(sapply(1:length(cellsn), function(x){(sigma2n[x]^(-1))*t(Xn)%*%Yn[,x]})))
-    alphak <- rnorm(1,mun, sqrt(Sigman))
+    alphak <- stats::rnorm(1,mun, sqrt(Sigman))
   } else{
     mun <- Sigman%*%as.matrix(rowSums(sapply(1:length(cellsn), function(x){(sigma2n[x]^(-1))*t(Xn)%*%Yn[,x]})))
-    alphak <- sapply(1:(k+1), function(x){rnorm(1,mun[x,1],sqrt(diag(Sigman)[x]))})
+    alphak <- sapply(1:(k+1), function(x){stats::rnorm(1, mun[x,1], sqrt(diag(Sigman)[x]))})
   }
   return(alphak)
 }
@@ -294,11 +318,11 @@ full_cond <- function(kstar, lambda, cluster, al, bl, K, N){
 
 update_lambda <- function(a = 4, b = 2, kstar, lambda, cluster, al, bl, K, N){
 
-  lambda_prop <- rgamma(1, a, b)
+  lambda_prop <- stats::rgamma(1, a, b)
 
-  log.r <- log(full_cond(kstar=kstar, lambda=lambda_prop, cluster=cluster, al=al, bl=bl, K=K, N=N)) - log(full_cond(kstar=kstar, lambda=lambda, cluster=cluster, al=al, bl=bl, K=K, N=N)) + dgamma(lambda, a, b, log = TRUE) - dgamma(lambda_prop, a, b, log = TRUE)
+  log.r <- log(full_cond(kstar=kstar, lambda=lambda_prop, cluster=cluster, al=al, bl=bl, K=K, N=N)) - log(full_cond(kstar=kstar, lambda=lambda, cluster=cluster, al=al, bl=bl, K=K, N=N)) + stats::dgamma(lambda, a, b, log = TRUE) - stats::dgamma(lambda_prop, a, b, log = TRUE)
 
-  if(log(runif(1)) < log.r){lambda <- lambda_prop}
+  if(log(stats::runif(1)) < log.r){lambda <- lambda_prop}
 
   return(lambda)
 }
@@ -309,7 +333,7 @@ postalpha0 <- function(alpha0, a, b, N, cluster){
 
   d <- length(unique(cluster))
 
-  kappa <- rbeta(1, alpha0 + 1, N)
+  kappa <- stats::rbeta(1, alpha0 + 1, N)
 
   pik <- (a + d - 1)/(N*((1/b) - log(kappa)))
 
@@ -317,12 +341,12 @@ postalpha0 <- function(alpha0, a, b, N, cluster){
     pik = 1
   }
 
-  x <- rbinom(1, 1, prob = pik)
+  x <- stats::rbinom(1, 1, prob = pik)
 
   if(x == 0){
-    alpha0n <- rgamma(1, a + d - 1, scale = ((1/b) - log(kappa))^(-1))
+    alpha0n <- stats::rgamma(1, a + d - 1, scale = ((1/b) - log(kappa))^(-1))
   } else{
-    alpha0n <- rgamma(1, a + d, scale = ((1/b) - log(kappa))^(-1))
+    alpha0n <- stats::rgamma(1, a + d, scale = ((1/b) - log(kappa))^(-1))
   }
 
   return(alpha0n)

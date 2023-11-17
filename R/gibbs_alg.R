@@ -1,4 +1,35 @@
-# Run gibbs algorithm
+#' Gibbs sampler algorithm for simulated scenarios or real datasets
+#'
+#' @param K A vector containing the number of change points for each cluster (or its initial values)
+#' @param Tl A list containing a vector for each cluster determining the change-point positions in each cluster
+#'    (or its initial values)
+#' @param cluster A vector containing the cluster assignments for the observations (or its initial values)
+#' @param alpha A list containing a vector for each cluster determining the constant level values
+#'    for each interval between change points in each cluster (or its initial values)
+#' @param sigma2 A vector with the variances of observations (or its initial values)
+#' @param d A scalar representing the number of clusters.
+#' @param M A scalar representing the number of points available for each observation
+#' @param w A scalar representing the minimum number of points in each interval between two change points
+#' @param N A scalar representing the number of observations
+#' @param as The hyperparameter value for the shape parameter in the inverse-gamma prior for the variance component
+#' @param bs The hyperparameter value for the scale parameter in the inverse-gamma prior for the variance component
+#' @param al The hyperparameter value for the shape parameter in the gamma prior for lambda
+#' @param bl The hyperparameter value for the scale parameter in the gamma prior for lambda
+#' @param a The hyperparameter value for the shape parameter in the gamma prior for alpha0
+#' @param b The hyperparameter value for the scale parameter in the gamma prior for alpha0
+#' @param alpha0 A scalar defining the parameter for the Dirichlet process prior
+#'    that controls the number of clusters (or its initial values)
+#' @param lambda A scalar defining the parameter for the Truncate Poisson distribution
+#'    that controls the number of change points (or its initial values)
+#' @param maxIter A scalar for the number of iteration to run in the Gibbs sampler
+#' @param kstar A scalar with the number maximum of change points in all clusters
+#' @param Y A matrix M x N with the data sequences
+#'
+#'
+#' @return A list with each component representing the estimates for each iteration of the Gibbs sampler for each
+#'    parameter
+#' @export
+#'
 gibbs_alg <- function(N, w, M, K, Tl, cluster, alpha, sigma2, bs = 1000, as = 2, al = 2, bl = 1000, a = 2, b = 1000,
                       alpha0 = 1/100, kstar, lambda, Y, d, maxIter = 10000){
 
@@ -37,7 +68,7 @@ gibbs_alg <- function(N, w, M, K, Tl, cluster, alpha, sigma2, bs = 1000, as = 2,
 
       p0 <- qn0.res/(qn0.res + sum(qnj.res))
 
-      if(rbinom(1, 1, 1 - p0) == 0){ #
+      if(stats::rbinom(1, 1, 1 - p0) == 0){ #
 
         ccurrent <- cluster[cell]
 
@@ -170,8 +201,6 @@ gibbs_alg <- function(N, w, M, K, Tl, cluster, alpha, sigma2, bs = 1000, as = 2,
     for(i in 1:length(alpha)){
       resTk[[iter]][[i]] <- NULL
       resak[[iter]][[i]] <- NULL
-      #resTk[[i]] <- Tm
-      #resak[[i]] <- alpham
       resTk[[iter]][[i]] <- Tl[[i]]
       resak[[iter]][[i]] <- alpha[[i]]
 

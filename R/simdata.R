@@ -18,8 +18,11 @@
 #' @examples
 #' set.seed(1238)
 #' sigma2 <- round(extraDistr::rinvgamma(10, 21, 0.05*20),4)
-#' param1 <- list(list(2, c(1, 19, 34, 51), c(5, 20, 10)), list(2, c(1, 15, 32, 51), c(17, 10, 2)), sigma2)
-#' simdata(par.values = param1, d = 2, M = 50, w = 10, N = 10, as = 2, bs = 1000, emp = FALSE, seed = 1252)
+#' param1 <- list(list(2, c(1, 19, 34, 51), c(5, 20, 10)),
+#'           list(2, c(1, 15, 32, 51), c(17, 10, 2)),
+#'           sigma2)
+#' simdata(par.values = param1, d = 2, M = 50, w = 10, N = 10, as = 2, bs = 1000,
+#'         emp = FALSE, seed = 1252)
 simdata <- function(par.values, d, M, w, N, as, bs, emp, seed){
 
   # cluster assignment (may not produce balanced clusters)
