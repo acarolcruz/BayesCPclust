@@ -18,7 +18,7 @@ knitr::opts_chunk$set(
 <!-- badges: start -->
 <!-- badges: end -->
 
-BayesCPclust aims to estimate the change points in constant-wise data sequences while performing clustering simultaneously. A Gibbs sampler algorithm was developed to estimate the number of clusters, cluster assignments, number of change points, their positions, and constant levels.
+BayesCPclust aims to estimate the change points in constant-wise data sequences while simultaneously performing clustering. A Gibbs sampler algorithm was developed to estimate the number of clusters, cluster assignments, number of change points, their positions, and constant levels.
 
 ## Installation
 

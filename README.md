@@ -7,7 +7,7 @@
 <!-- badges: end -->
 
 BayesCPclust aims to estimate the change points in constant-wise data
-sequences while performing clustering simultaneously. A Gibbs sampler
+sequences while simultaneously performing clustering. A Gibbs sampler
 algorithm was developed to estimate the number of clusters, cluster
 assignments, number of change points, their positions, and constant
 levels.
@@ -71,5 +71,5 @@ sim_random(S = 1, seed = 1245, scenario = "TESTE", casenumber = 1,
            a = 2, b = 1000, alpha0 = 1/100, lambda = 2, maxIter = 50,
            startpoint_sampling = 2, par.values = param1, sigma2_equal = FALSE,
            emp = FALSE, initial_val = initial_val)
-#> [1] 0.2380083
+#> [1] 0.2382484
 ```
