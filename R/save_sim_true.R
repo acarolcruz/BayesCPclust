@@ -1,12 +1,12 @@
 save_sim_true <- function(sim, seed, scenario, casenumber, M, N, w, d, as, bs, al, bl, a, b, alpha0,
                         lambda, maxIter, startpoint_sampling, par.values, emp){
 
-  #set.seed(seed + sim)
+
 
   tt <- Sys.time()
   out <- run_gibbs_true(M = M, N = N, w = w, d = d, as = as, bs = bs, al = al, bl = bl, a = a, b = b,
                    alpha0 = alpha0, lambda = lambda, maxIter = maxIter, par.values = par.values, emp = emp, seed = seed + sim)
-  #tt <- Sys.time() - tt
+
 
   tt <- difftime(Sys.time(), tt, units = 'mins')
 
@@ -25,6 +25,7 @@ save_sim_true <- function(sim, seed, scenario, casenumber, M, N, w, d, as, bs, a
   save(res1, file = paste0(scenario, "/case", casenumber, "/Sim", sim, "IterGibbs_final.RData"))
 
   #computing posterior means and modes for all parameters except alpha and T
+
   out2 <- list(Nclusters = Mode(res1$Nclusters),
                lambda = mean(res1$lambda), alpha0 = mean(res1$alpha0),
                clusters = apply(res1$clusters, 2, Mode), sigma2 = apply(res1$sigma2, 2, mean))
@@ -33,23 +34,32 @@ save_sim_true <- function(sim, seed, scenario, casenumber, M, N, w, d, as, bs, a
 
   Ckres <- do.call("rbind", lapply(res1$Ck, "[", seq(1:max(sapply(res1$Ck, length)))))
 
-  out2$Ck <- apply(Ckres[,1:out2$Nclusters], 2, Mode)
+  out2$Ck <- apply(Ckres[,sort(unique(out2$clusters))], 2, Mode)
 
   # merging selected iteration for Tl and alpha (considering we can have different sizes in each iteration)
 
   Tlist_tab <- lapply(1:length(res1$Tl),
-                      function(x){do.call("rbind",
-                                          lapply(res1$Tl[[x]], "[", seq(1:max(sapply(res1$Tl[[x]], length)))))})
+                      function(x){do.call("list",
+                                          lapply(res1$Tl[[x]][sort(unique(res1$clusters[x,]))], "[",
+                                                 seq(1:max(sapply(res1$Tl[[x]][sort(unique(res1$clusters[x,]))], length)))))})
+
+
 
   # creating list for each cluster, considering the most frequent number of clusters
-  Tlist <- lapply(1:out2$Nclusters, function(x){lapply(res1$Tl, "[[", x)})
+  Tlist <- lapply(1:out2$Nclusters, function(x){lapply(Tlist_tab , "[[", x)})
 
 
   Tvalues <- lapply(1:length(Tlist),
                     function(x){do.call("rbind",
                                         lapply(Tlist[[x]], "[", seq(1:max(sapply(Tlist[[x]], length)))))})
 
-  alist <- lapply(1:out2$Nclusters, function(x){lapply(res1$alphal, "[[", x)})
+  a_tab <- lapply(1:length(res1$alphal),
+                  function(x){do.call("list",
+                                      lapply(res1$alphal[[x]][sort(unique(res1$clusters[x,]))], "[",
+                                             seq(1:max(sapply(res1$alphal[[x]][sort(unique(res1$clusters[x,]))], length)))))})
+
+
+  alist <- lapply(1:out2$Nclusters, function(x){lapply(a_tab, "[[", x)})
 
 
   avalues <- lapply(1:length(alist),
@@ -66,11 +76,11 @@ save_sim_true <- function(sim, seed, scenario, casenumber, M, N, w, d, as, bs, a
     ck <- out2$Ck[i]
     if(ck == 0){
       alphapos <- mean(avalues[[i]])
-      Tlpos <- mean(Tvalues[[i]])
+      Tlpos <- Mode(Tvalues[[i]])
     } else{
       Tl <- Tvalues[[i]][,-c(1,ncol(Tvalues[[i]]))]
       alphapos <- apply(avalues[[i]][,1:(ck+1)], 2, mean)
-      Tlpos <- apply(Tl[,1:ck], 2, mean)
+      Tlpos <- apply(Tl[,1:ck], 2, Mode)
     }
     res_alpha[[i]] <- alphapos
     res_Tl[[i]] <- Tlpos
@@ -78,6 +88,7 @@ save_sim_true <- function(sim, seed, scenario, casenumber, M, N, w, d, as, bs, a
 
   out2$alpha <- res_alpha
   out2$Tl  <- res_Tl
+
 
   for(param in names(data)){
     if(is.matrix(data[[param]])){

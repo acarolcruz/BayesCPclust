@@ -34,7 +34,6 @@
 #' @param alpha A list containing a vector for each cluster determining the constant level values
 #'    for each interval between change points in each cluster (or its initial values)
 #' @param sigma2 A vector with the variances of the data sequences (or its initial values)
-
 #'
 #' @export
 #'

@@ -12,6 +12,9 @@ algorithm was developed to estimate the number of clusters, cluster
 assignments, number of change points, their positions, and constant
 levels.
 
+For more details see paper in [arXiv paper
+link](https://arxiv.org/abs/2305.17631)
+
 ## Installation
 
 You can install the development version of BayesCPclust from
@@ -71,5 +74,5 @@ sim_random(S = 1, seed = 1245, scenario = "TESTE", casenumber = 1,
            a = 2, b = 1000, alpha0 = 1/100, lambda = 2, maxIter = 50,
            startpoint_sampling = 2, par.values = param1, sigma2_equal = FALSE,
            emp = FALSE, initial_val = initial_val)
-#> [1] 0.2382484
+#> [1] 0.2382745
 ```
